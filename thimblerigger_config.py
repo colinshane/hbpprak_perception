@@ -13,6 +13,7 @@ thimblerigger_show_correct_service = namespace + "/show_correct_mug"
 thimblerigger_hide_correct_service = namespace + "/hide_correct_mug"
 thimblerigger_shuffle_service = namespace + "/shuffle"
 
+mug_model_symlink_name = "cup"
 
 ball_sdf_xml = """
     <?xml version='1.0'?>

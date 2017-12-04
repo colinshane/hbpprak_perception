@@ -1,6 +1,7 @@
 import random
 import functools
 import threading
+import os
 
 import rospy
 from gazebo_msgs.srv import GetModelState, SetModelState, \
@@ -56,7 +57,7 @@ class Thimblerigger(object):
         """
 
         # SDFs to spawn objects
-        self.mug_sdf = tc.mug_sdf_xml
+        self.mug_sdf, self.mug_from_mesh = self._load_mug_model()
         self.ball_sdf = tc.ball_sdf_xml
 
         # Random number generator
@@ -75,7 +76,7 @@ class Thimblerigger(object):
         self.mug_radius = mug_radius
         self.lift_height = 2 * self.mug_height
         self.shuffle_displacement = 4 * self.mug_radius
-        self.ball_radius = 0.75 * self.mug_radius
+        self.ball_radius = 0.5 * self.mug_radius
 
         # Get ROS proxies
         self._move_proxy = rospy.ServiceProxy('gazebo/set_model_state',
@@ -136,16 +137,27 @@ class Thimblerigger(object):
 
         :returns True.
         """
+        clientLogger.info("Mug sdf: {}".format(self.mug_sdf))
         clientLogger.info("Spawning {} mugs.".format(len(self.mug_order)))
         for i, mug_name in enumerate(self.mug_order):
             msg = SpawnEntityRequest()
             msg.entity_name = mug_name
-            msg.entity_xml = self.mug_sdf.format(mug_name=mug_name,
-                                                 radius=self.mug_radius,
-                                                 length=self.mug_height)
-            msg.initial_pose.position.x = i * self.shuffle_displacement
-            msg.initial_pose.position.y = 0
-            msg.initial_pose.position.z = self.mug_height / 2
+            if self.mug_from_mesh:
+                msg.entity_xml = self.mug_sdf
+                msg.initial_pose.position.x = i * self.shuffle_displacement
+                msg.initial_pose.position.y = 0
+                msg.initial_pose.position.z = 0.205
+                msg.initial_pose.orientation.x = 1
+                msg.initial_pose.orientation.y = 0
+                msg.initial_pose.orientation.z = 0
+                msg.initial_pose.orientation.w = 0
+            else:  # Fallback in case 3D model could not be loaded
+                msg.entity_xml = self.mug_sdf.format(mug_name=mug_name,
+                                                     radius=self.mug_radius,
+                                                     length=self.mug_height)
+                msg.initial_pose.position.x = i * self.shuffle_displacement
+                msg.initial_pose.position.y = 0
+                msg.initial_pose.position.z = self.mug_height / 2
             msg.reference_frame = "world"
             self._spawn_proxy(msg)
         return True
@@ -365,6 +377,18 @@ class Thimblerigger(object):
             msg.model_state.reference_frame = 'world'
             self._move_proxy(msg)
 
+    def _load_mug_model(self):
+        clientLogger.info("Loading mug model...")
+        gazebo_model_dirs = os.environ["GAZEBO_MODEL_PATH"]
+        for model_dir in gazebo_model_dirs.split(":"):
+            clientLogger.info("Checking model directory {}".format(model_dir))
+            model_dir_contents = os.listdir(model_dir)
+            if tc.mug_model_symlink_name in model_dir_contents:
+                clientLogger.info("Found symlink {}".format(tc.mug_model_symlink_name))
+                sdf_filename = os.path.join(model_dir, tc.mug_model_symlink_name, "model.sdf")
+                with open(sdf_filename) as mug_model_file:
+                    return mug_model_file.read(), True
+        return tc.mug_sdf_xml, False
 
 def find_cycles(a, b):
     """

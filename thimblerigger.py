@@ -137,7 +137,6 @@ class Thimblerigger(object):
 
         :returns True.
         """
-        clientLogger.info("Mug sdf: {}".format(self.mug_sdf))
         clientLogger.info("Spawning {} mugs.".format(len(self.mug_order)))
         for i, mug_name in enumerate(self.mug_order):
             msg = SpawnEntityRequest()
@@ -146,7 +145,7 @@ class Thimblerigger(object):
                 msg.entity_xml = self.mug_sdf
                 msg.initial_pose.position.x = i * self.shuffle_displacement
                 msg.initial_pose.position.y = 0
-                msg.initial_pose.position.z = 0.205
+                msg.initial_pose.position.z = self.mug_height / 2
                 msg.initial_pose.orientation.x = 1
                 msg.initial_pose.orientation.y = 0
                 msg.initial_pose.orientation.z = 0
@@ -381,10 +380,8 @@ class Thimblerigger(object):
         clientLogger.info("Loading mug model...")
         gazebo_model_dirs = os.environ["GAZEBO_MODEL_PATH"]
         for model_dir in gazebo_model_dirs.split(":"):
-            clientLogger.info("Checking model directory {}".format(model_dir))
             model_dir_contents = os.listdir(model_dir)
             if tc.mug_model_symlink_name in model_dir_contents:
-                clientLogger.info("Found symlink {}".format(tc.mug_model_symlink_name))
                 sdf_filename = os.path.join(model_dir, tc.mug_model_symlink_name, "model.sdf")
                 with open(sdf_filename) as mug_model_file:
                     return mug_model_file.read(), True

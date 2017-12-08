@@ -33,7 +33,12 @@ def run_challenge():
     step_client = rospy.ServiceProxy(step_service, Trigger)
     try:
         time.sleep(3)
-        res = step_client() # Do one "step" in the challenge
+        res = step_client() # Lift mug
+        time.sleep(3)
+        res = step_client() # Hide mug
+        time.sleep(5)
+        clientLogger.info("Stepper: Shuffling...")
+        res = step_client() # Shuffle
     except rospy.ServiceException as exc:
         clientLogger.info("Service did not process request: " + str(exc))
 

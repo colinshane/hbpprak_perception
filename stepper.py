@@ -34,6 +34,23 @@ def run_challenge():
     try:
         time.sleep(3)
         res = step_client() # Do one "step" in the challenge
+        time.sleep(3)
+        res = step_client() # Do one "step" in the challenge
+        time.sleep(3)
+        res = step_client() # Do one "step" in the challenge
+        time.sleep(3)
+        res = step_client() # Do one "step" in the challenge
+        time.sleep(3)
+        res = step_client() # Do one "step" in the challenge
+        time.sleep(3)
+        res = step_client() # Do one "step" in the challenge
+        time.sleep(3)
+        res = step_client() # Do one "step" in the challenge
+        time.sleep(3)
+        res = step_client() # Do one "step" in the challenge
+        time.sleep(3)
+        res = step_client() # Do one "step" in the challenge
+        
     except rospy.ServiceException as exc:
         clientLogger.info("Service did not process request: " + str(exc))
 

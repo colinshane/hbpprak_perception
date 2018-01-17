@@ -4,19 +4,17 @@ import sensor_msgs.msg
 from cv_bridge import CvBridge
 
 @nrp.MapRobotSubscriber("camera", Topic("/icub_model/left_eye_camera/image_raw", sensor_msgs.msg.Image))
-@nrp.MapSpikeSource("sensors", nrp.map_neurons(range(0, nrp.config.brain_root.n_sensors), lambda i: nrp.brain.sensors[i]), nrp.dc_source)
-#@nrp.MapVariable("last_mean_greens", initial_value=None, scope=nrp.GLOBAL)
+@nrp.MapSpikeSource("sensors", nrp.map_neurons(range(0, nrp.config.brain_root.resolution ** 2), lambda i: nrp.brain.sensors[i]), nrp.dc_source)
+@nrp.MapVariable("last_mean_greens", initial_value=[], scope=nrp.GLOBAL)
 @nrp.Robot2Neuron()
-def grab_image(t, camera, sensors):
+def grab_image(t, camera, sensors, last_mean_greens):
     # Take the image from the robot's left eye
     image_msg = camera.value
-#    if last_mean_greens is None:
-#        last_mean_greens = []
     if image_msg is not None:
         # Read the image into an array, mean over 3 colors, resize it for the network and flatten the result
         img = CvBridge().imgmsg_to_cv2(image_msg, "rgb8")
         img_height, img_width, color_dim = img.shape
-        sensor_rows = int(np.sqrt(nrp.config.brain_root.n_sensors))  # Sensors is a square matrix
+        sensor_rows = nrp.config.brain_root.resolution  # Sensors is a square matrix
 
         col_width = int(img_width / sensor_rows)
         row_height = int(img_height / sensor_rows)
@@ -32,8 +30,8 @@ def grab_image(t, camera, sensors):
             y_end = (row + 1) * row_height
             green_channel = img[y_start:y_end,x_start:x_end,1]
             mean_green = np.mean(green_channel)
-#            if len(last_mean_greens) < nrp.config.brain_root.n_sensors:
-#                last_mean_greens.append(mean_green)
-#            delta_mean_green = mean_green - last_mean_greens[idx]
-            neuron.amplitude = 3. * max(0., mean_green)
-#            last_mean_greens[idx] = mean_green
+            if len(last_mean_greens.value) < nrp.config.brain_root.resolution ** 2:
+                last_mean_greens.value.append(mean_green)
+            delta_mean_green = mean_green - last_mean_greens.value[idx]
+            neuron.amplitude = 3. * max(0., delta_mean_green)
+            last_mean_greens.value[idx] = mean_green

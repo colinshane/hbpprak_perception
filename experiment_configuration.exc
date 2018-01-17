@@ -9,7 +9,7 @@
     <configuration type="3d-settings" src="ExDTemplateICub.3ds"/>
     <maturity>production</maturity>
     <environmentModel src="empty_world/empty_world.sdf">
-        <robotPose x="-0.75" y="0.0" z="0.8" ux="0.0" uy="0.0" uz="1" theta="0.0"/> <!--0.70710689672598181-->
+        <robotPose x="0.4" y="-1.2" z="0.65" ux="0.0" uy="0.0" uz="-0.70710689672598181" theta="0.70710689672598181"/> <!--0.70710689672598181-->
     </environmentModel>
     <bibiConf src="bibi_configuration.bibi"/>
     <experimentControl>

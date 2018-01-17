@@ -10,5 +10,5 @@ import numpy as np
 @nrp.MapRobotPublisher('neck_yaw', Topic('/robot/neck_yaw/vel', std_msgs.msg.Float64))
 @nrp.Neuron2Robot()
 def center_on_green(t, motors_down, motors_left, motors_up, motors_right, neck_pitch, neck_yaw):
-    neck_yaw.send_message(std_msgs.msg.Float64(30. * (motors_up.voltage - motors_down.voltage)))
-    neck_pitch.send_message(std_msgs.msg.Float64(30. * (motors_left.voltage - motors_right.voltage)))
+    neck_pitch.send_message(std_msgs.msg.Float64(motors_up.voltage - motors_down.voltage))
+    neck_yaw.send_message(std_msgs.msg.Float64(motors_left.voltage - motors_right.voltage))

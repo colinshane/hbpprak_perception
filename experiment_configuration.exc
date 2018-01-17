@@ -1,24 +1,20 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ExD xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xmlns="http://schemas.humanbrainproject.eu/SP10/2014/ExDConfig"
-     xsi:schemaLocation="http://schemas.humanbrainproject.eu/SP10/2014/ExDConfig ../ExDConfFile.xsd">
-    <name>HBP Praktical Perception</name>
-    <thumbnail>ExDThumbnail.png</thumbnail>
-    <description>Thimblerigger</description>
-    <timeout>840</timeout>
-    <configuration type="3d-settings" src="ExDTemplateICub.3ds"/>
-    <maturity>production</maturity>
-    <environmentModel src="empty_world/empty_world.sdf">
-        <robotPose x="0.4" y="-1.2" z="0.65" ux="0.0" uy="0.0" uz="-0.70710689672598181" theta="0.70710689672598181"/> <!--0.70710689672598181-->
-    </environmentModel>
-    <bibiConf src="bibi_configuration.bibi"/>
-    <experimentControl>
-      <stateMachine xsi:type="SMACHStateMachine"
-                    id="MugHandlingMachine"
-                    src="state_machine.exd"/>
-    </experimentControl>
-    <cameraPose>
-        <cameraPosition x="2.5" y="0" z="1.8"/>
-        <cameraLookAt x="0" y="0" z="0.6"/>
-    </cameraPose>
-</ExD>
+<?xml version="1.0" ?>
+<ns1:ExD xmlns:ns1="http://schemas.humanbrainproject.eu/SP10/2014/ExDConfig" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<ns1:name>HBP Praktical Perception</ns1:name>
+	<ns1:thumbnail>ExDThumbnail.png</ns1:thumbnail>
+	<ns1:description>Thimblerigger</ns1:description>
+	<ns1:timeout>840.0</ns1:timeout>
+	<ns1:configuration src="ExDTemplateICub.3ds" type="3d-settings"/>
+	<ns1:maturity>production</ns1:maturity>
+	<ns1:environmentModel src="empty_world.sdf">
+		<ns1:robotPose theta="0.707106896726" ux="0.0" uy="0.0" uz="-0.707106896726" x="0.4" y="-1.2" z="0.65"/>
+	</ns1:environmentModel>
+	<ns1:bibiConf src="bibi_configuration.bibi"/>
+	<ns1:experimentControl>
+		<ns1:stateMachine id="MugHandlingMachine" src="state_machine.exd" xsi:type="ns1:SMACHStateMachine"/>
+	</ns1:experimentControl>
+	<ns1:cameraPose>
+		<ns1:cameraPosition x="2.5" y="0.0" z="1.8"/>
+		<ns1:cameraLookAt x="0.0" y="0.0" z="0.6"/>
+	</ns1:cameraPose>
+</ns1:ExD>

@@ -6,4 +6,5 @@
 	<ns1:bodyModel>model.sdf</ns1:bodyModel>
 	<ns1:transferFunction src="center_on_green.py" xsi:type="ns1:PythonTransferFunction"/>
 	<ns1:transferFunction src="detect_green.py" xsi:type="ns1:PythonTransferFunction"/>
+	<ns1:transferFunction src="monitor_population.py" xsi:type="ns1:PythonTransferFunction"/>
 </ns1:bibi>

@@ -1,0 +1,121 @@
+import hbp_nrp_excontrol.nrp_states as states
+from smach import StateMachine
+from smach.state import State
+
+from gazebo_msgs.srv import ApplyBodyWrench, GetModelState, SetModelState, SetModelStateRequest, DeleteModel, SpawnEntity, SpawnEntityRequest
+from geometry_msgs.msg import Wrench, Vector3, Point
+import rospy
+from rospy import ServiceProxy, wait_for_service
+import time
+
+
+FINISHED = 'FINISHED'
+ERROR = 'ERROR'
+PREEMPTED = 'PREEMPTED'
+
+sm = StateMachine(outcomes=[FINISHED, ERROR, PREEMPTED])
+
+import hbp_nrp_excontrol.nrp_states as states
+
+ball_name = "ball"
+ball_sdf_xml = """
+<?xml version='1.0'?>
+<sdf version='1.5'>
+  <model name='{ball_name}'>
+    <pose>0 0 0 0 0 0</pose>
+    <link name='{ball_name}'>
+      <inertial>
+        <mass>0.057</mass>
+      </inertial>
+      <collision name='collision'>
+        <geometry>
+          <sphere>
+            <radius>.034</radius>
+          </sphere>
+        </geometry>
+      </collision>
+      <visual name='visual'>
+        <geometry>
+          <sphere>
+            <radius>.034</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Green</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
+"""
+
+move_proxy = rospy.ServiceProxy('gazebo/set_model_state',
+                                      SetModelState,
+                                      persistent=True)
+model_state_proxy =  rospy.ServiceProxy('gazebo/get_model_state',
+                                              GetModelState,
+                                              persistent=True)
+
+def move(model_name, dx=0., dy=0., dz=0., smoothness=50):
+    smoothness = max(1, smoothness)
+    for i in range(smoothness):
+        model_state = model_state_proxy(model_name, 'world')
+        msg = SetModelStateRequest()
+        msg.model_state.model_name = model_name
+        msg.model_state.pose = model_state.pose
+        msg.model_state.pose.position.x += float(dx) / smoothness
+        msg.model_state.pose.position.y += float(dy) / smoothness
+        msg.model_state.pose.position.z += float(dz) / smoothness
+        msg.model_state.twist = model_state.twist
+        msg.model_state.scale = model_state.scale
+        msg.model_state.reference_frame = 'world'
+        move_proxy(msg)
+        time.sleep(0.1)
+
+class MoveLeftState(State):
+    def __init__(self, ball_name, outcomes=['success']):
+        super(MoveLeftState, self).__init__(outcomes=outcomes)
+
+    def execute(self, userdata):
+        move(ball_name, dx=-2)
+        return 'success'
+
+class MoveRightState(State):
+    def __init__(self, ball_name, outcomes=['success']):
+        super(MoveRightState, self).__init__(outcomes=outcomes)
+
+    def execute(self, userdata):
+        move(ball_name, dx=2)
+        return 'success'
+
+def spawn_ball():
+    spawn_proxy = rospy.ServiceProxy('/gazebo/spawn_sdf_entity',
+                                           SpawnEntity, persistent=True)
+    wrench_proxy = ServiceProxy('/gazebo/apply_body_wrench',
+                                      ApplyBodyWrench, persistent=True)
+
+    ball_msg = SpawnEntityRequest()
+    ball_msg.entity_name = ball_name
+    ball_msg.entity_xml = ball_sdf_xml.format(ball_name=ball_name)
+    ball_msg.initial_pose.position.x = 1
+    ball_msg.initial_pose.position.y = 0
+    ball_msg.initial_pose.position.z = 1
+    ball_msg.reference_frame = "world"
+    spawn_proxy(ball_msg)
+
+spawn_ball()
+
+with sm:
+    StateMachine.add(
+      "move_left",
+      MoveLeftState(ball_name),
+      transitions = {"success": "move_right"}
+    )
+    StateMachine.add(
+     "move_right",
+     MoveRightState(ball_name),
+     transitions = {"success": "move_left"}
+    )

@@ -105,3 +105,5 @@ venv.bak/
 
 # Compiled .exd
 *.exdc
+
+debug/

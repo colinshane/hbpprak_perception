@@ -88,6 +88,8 @@ class InitRobotState(State):
         time.sleep(2)
         clientLogger.info("Moving robot neck...")
         neck_pitch_pub.publish(Float64(-math.pi/4.0))
+        clientLogger.info("Waiting until robot stops moving...")
+        time.sleep(15)
         return 'success'
 
 
@@ -117,7 +119,7 @@ def spawn_ball():
     ball_msg.entity_name = ball_name
     ball_msg.entity_xml = ball_sdf_xml.format(ball_name=ball_name)
     ball_msg.initial_pose.position.x = 1
-    ball_msg.initial_pose.position.y = 0
+    ball_msg.initial_pose.position.y = 0.4
     ball_msg.initial_pose.position.z = 0.1
     ball_msg.reference_frame = "world"
     spawn_proxy(ball_msg)

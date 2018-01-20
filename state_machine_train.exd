@@ -1,12 +1,16 @@
 import hbp_nrp_excontrol.nrp_states as states
+from hbp_nrp_excontrol.logs import clientLogger
+
 from smach import StateMachine
 from smach.state import State
 
 from gazebo_msgs.srv import ApplyBodyWrench, GetModelState, SetModelState, SetModelStateRequest, DeleteModel, SpawnEntity, SpawnEntityRequest
 from geometry_msgs.msg import Wrench, Vector3, Point
+from std_msgs.msg import Float64
 import rospy
-from rospy import ServiceProxy, wait_for_service
+from rospy import ServiceProxy, wait_for_service, Publisher
 import time
+import math
 
 
 FINISHED = 'FINISHED'
@@ -58,6 +62,7 @@ move_proxy = rospy.ServiceProxy('gazebo/set_model_state',
 model_state_proxy =  rospy.ServiceProxy('gazebo/get_model_state',
                                               GetModelState,
                                               persistent=True)
+neck_pitch_pub = rospy.Publisher('/robot/neck_pitch/pos', Float64, queue_size=10)
 
 def move(model_name, dx=0., dy=0., dz=0., smoothness=50):
     smoothness = max(1, smoothness)
@@ -74,6 +79,17 @@ def move(model_name, dx=0., dy=0., dz=0., smoothness=50):
         msg.model_state.reference_frame = 'world'
         move_proxy(msg)
         time.sleep(0.1)
+
+class InitRobotState(State):
+    def __init__(self, outcomes=['success']):
+        super(InitRobotState, self).__init__(outcomes=outcomes)
+
+    def execute(self, userdata):
+        time.sleep(2)
+        clientLogger.info("Moving robot neck...")
+        neck_pitch_pub.publish(Float64(-math.pi/4.0))
+        return 'success'
+
 
 class MoveLeftState(State):
     def __init__(self, ball_name, outcomes=['success']):
@@ -102,7 +118,7 @@ def spawn_ball():
     ball_msg.entity_xml = ball_sdf_xml.format(ball_name=ball_name)
     ball_msg.initial_pose.position.x = 1
     ball_msg.initial_pose.position.y = 0
-    ball_msg.initial_pose.position.z = 1
+    ball_msg.initial_pose.position.z = 0.1
     ball_msg.reference_frame = "world"
     spawn_proxy(ball_msg)
 
@@ -110,10 +126,15 @@ spawn_ball()
 
 with sm:
     StateMachine.add(
+        "initialize_robot", InitRobotState(), transitions = {"success": "move_left"}
+    )
+
+    StateMachine.add(
       "move_left",
       MoveLeftState(ball_name),
       transitions = {"success": "move_right"}
     )
+
     StateMachine.add(
      "move_right",
      MoveRightState(ball_name),

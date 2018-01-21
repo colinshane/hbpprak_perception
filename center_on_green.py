@@ -11,5 +11,5 @@ import numpy as np
 @nrp.Neuron2Robot()
 def center_on_green(t, motors_down, motors_left, motors_up, motors_right, neck_pitch, neck_yaw):
     #neck_pitch.send_message(std_msgs.msg.Float64(1.5*(motors_up.voltage - motors_down.voltage)))
-    #neck_yaw.send_message(std_msgs.msg.Float64(1.5*(motors_left.voltage - motors_right.voltage)))
+    #neck_yaw.send_message(std_msgs.msg.Float64(1.5*(motors_up.voltage - motors_down.voltage)))
     pass

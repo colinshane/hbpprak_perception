@@ -34,14 +34,14 @@ ball_sdf_xml = """
       <collision name='collision'>
         <geometry>
           <sphere>
-            <radius>.034</radius>
+            <radius>.09</radius>
           </sphere>
         </geometry>
       </collision>
       <visual name='visual'>
         <geometry>
           <sphere>
-            <radius>.034</radius>
+            <radius>.09</radius>
           </sphere>
         </geometry>
         <material>

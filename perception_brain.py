@@ -32,4 +32,12 @@ pro_up = sim.Projection(upper_half, up, sim.AllToAllConnector(),
 pro_left = sim.Projection(left_half, left, sim.AllToAllConnector(),
                       sim.StaticSynapse(weight=weights_inv))
 pro_right = sim.Projection(right_half, right, sim.AllToAllConnector(),
-                      sim.StaticSynapse(weight=weights))
+                      sim.StaticSynapse(weight=weights_inv))
+
+print "**************************** DEBUG ***************************"
+print "weights_inv:"
+print weights_inv
+print
+print "weights:"
+print weights
+print "**************************** DEBUG ***************************"

@@ -6,7 +6,7 @@ __author__ = 'Benjamin Alt, Felix Schneider'
 from hbp_nrp_cle.brainsim import simulator as sim
 import numpy as np
 
-resolution = 15
+resolution = 17
 n_motors = 4  # down, up, left, right
 
 upper_half = sim.Population(resolution * (resolution // 2), cellclass=sim.IF_curr_exp())
@@ -33,11 +33,3 @@ pro_left = sim.Projection(left_half, left, sim.AllToAllConnector(),
                       sim.StaticSynapse(weight=weights_inv))
 pro_right = sim.Projection(right_half, right, sim.AllToAllConnector(),
                       sim.StaticSynapse(weight=weights))
-
-print "**************************** DEBUG ***************************"
-print "weights_inv:"
-print weights_inv
-print
-print "weights:"
-print weights
-print "**************************** DEBUG ***************************"

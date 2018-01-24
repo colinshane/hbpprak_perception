@@ -8,30 +8,28 @@ import os
 @nrp.MapSpikeSource("lower_half", nrp.map_neurons(range(0, nrp.config.brain_root.resolution * (nrp.config.brain_root.resolution // 2)), lambda i: nrp.brain.lower_half[i]), nrp.dc_source)
 @nrp.MapSpikeSource("left_half", nrp.map_neurons(range(0, nrp.config.brain_root.resolution * (nrp.config.brain_root.resolution // 2)), lambda i: nrp.brain.left_half[i]), nrp.dc_source)
 @nrp.MapSpikeSource("right_half", nrp.map_neurons(range(0, nrp.config.brain_root.resolution * (nrp.config.brain_root.resolution // 2)), lambda i: nrp.brain.right_half[i]), nrp.dc_source)
-@nrp.MapVariable("last_mean_greens", initial_value=[], scope=nrp.GLOBAL)
 @nrp.MapVariable("counter", initial_value=0, scope=nrp.GLOBAL)
 @nrp.MapRobotPublisher('debug_sensors_left', Topic('/debug_sensors_left', std_msgs.msg.Float64))
 @nrp.MapRobotPublisher('debug_sensors_right', Topic('/debug_sensors_right', std_msgs.msg.Float64))
 @nrp.Robot2Neuron()
-def grab_image(t, camera, upper_half, lower_half, left_half, right_half, last_mean_greens, counter, debug_sensors_left, debug_sensors_right):
+def grab_image(t, camera, upper_half, lower_half, left_half, right_half, counter, debug_sensors_left, debug_sensors_right):
     resolution = nrp.config.brain_root.resolution
     # Take the image from the robot's left eye
     image_msg = camera.value
     if image_msg is not None:
-        # Read the image into an array, mean over 3 colors, resize it for the network and flatten the result
         img = CvBridge().imgmsg_to_cv2(image_msg, "rgb8")
         img_height, img_width, color_dim = img.shape
 
         col_width = img_width // resolution
         row_height = img_height // resolution
-        delta_mean_greens = [0 for i in range(resolution ** 2)]
-
-
 
         average_right = 0
         average_left = 0
         count_right = 0
         count_left = 0
+
+        green_threshold = 0.5
+        amp_scaling_factor = 32.
 
         # Split the image into equidistant regions
         # Sensor neurons are addressed in row_major order, top left to bottom right
@@ -41,16 +39,16 @@ def grab_image(t, camera, upper_half, lower_half, left_half, right_half, last_me
                 x_end = x_start + col_width
                 y_start = row_idx * row_height
                 y_end = y_start + row_height
-                green_channel = img[y_start:y_end,x_start:x_end,1]
-                mean_green = np.mean(green_channel)
-                if len(last_mean_greens.value) < (resolution ** 2):
-                    last_mean_greens.value.append(mean_green)
+                mean_red = np.mean(img[y_start:y_end,x_start:x_end,0])
+                mean_green = np.mean(img[y_start:y_end,x_start:x_end,1])
+                mean_blue = np.mean(img[y_start:y_end,x_start:x_end,2])
+
+                green_proportion = mean_green / float(mean_red + mean_green + mean_blue)
 
                 idx = row_idx * resolution + col_idx
-                delta_mean_green = mean_green - last_mean_greens.value[idx]
-                delta_mean_greens[idx] = delta_mean_green
 
-                amp = 6. * max(0., delta_mean_green)
+
+                amp = amp_scaling_factor * green_proportion if green_proportion > green_threshold else 0
 
                 # Find relevant neurons
                 if row_idx < resolution // 2:
@@ -68,17 +66,6 @@ def grab_image(t, camera, upper_half, lower_half, left_half, right_half, last_me
                     count_right += 1
                     average_right += amp
 
-                last_mean_greens.value[idx] = mean_green
-
-            """
-            if len(np.nonzero(last_mean_greens.value)) > 0:
-                debug_dir = "/home/bal/.opt/nrpStorage/Experiment_0/debug"
-                mat_filepath = debug_dir + "/debug_{}.csv".format(counter.value)
-                img_filepath = debug_dir + "/debug_{}.png".format(counter.value)
-                cv2.imwrite(img_filepath, img)
-                delta_mean_greens_reshaped = np.reshape(delta_mean_greens, (resolution, resolution))
-                np.savetxt(mat_filepath, delta_mean_greens_reshaped, fmt="%10.5f")
-            """
         counter.value = counter.value + 1
         average_left /= float(count_left)
         average_right /= float(count_right)

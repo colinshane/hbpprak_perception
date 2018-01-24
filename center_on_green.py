@@ -12,9 +12,11 @@ import numpy as np
 @nrp.MapRobotPublisher('debug_right', Topic('/debug_right', std_msgs.msg.Float64))
 @nrp.Neuron2Robot()
 def center_on_green(t, motors_down, motors_left, motors_up, motors_right, neck_pitch, neck_yaw, debug_left, debug_right):
-    #neck_pitch.send_message(std_msgs.msg.Float64(1.5*(motors_up.voltage - motors_down.voltage)))
-    #if t > 5:
-    #clientLogger.info("Left: {}".format(motors_left.voltage))
-    #clientLogger.info("Right: {}".format(motors_right.voltage))
-    debug_left.send_message(std_msgs.msg.Float64(1. * motors_left.voltage))
-    debug_right.send_message(std_msgs.msg.Float64(1. * motors_right.voltage))
+    #scaling_factor = 0.001
+    scaling_factor = 4
+    if t > 5:
+        pass
+        #neck_pitch.send_message(std_msgs.msg.Float64(1.5*(motors_up.voltage - motors_down.voltage)))
+        neck_yaw.send_message(std_msgs.msg.Float64(scaling_factor * (motors_left.voltage - motors_right.voltage)))
+    debug_left.send_message(std_msgs.msg.Float64(scaling_factor * motors_left.voltage))
+    debug_right.send_message(std_msgs.msg.Float64(scaling_factor * motors_right.voltage))

@@ -14,6 +14,7 @@ import os
 @nrp.MapRobotPublisher('debug_sensors_right', Topic('/debug_sensors_right', std_msgs.msg.Float64))
 @nrp.Robot2Neuron()
 def grab_image(t, camera, upper_half, lower_half, left_half, right_half, last_mean_greens, counter, debug_sensors_left, debug_sensors_right):
+    resolution = nrp.config.brain_root.resolution
     # Take the image from the robot's left eye
     image_msg = camera.value
     if image_msg is not None:
@@ -21,9 +22,11 @@ def grab_image(t, camera, upper_half, lower_half, left_half, right_half, last_me
         img = CvBridge().imgmsg_to_cv2(image_msg, "rgb8")
         img_height, img_width, color_dim = img.shape
 
-        col_width = img_width // nrp.config.brain_root.resolution
-        row_height = img_height // nrp.config.brain_root.resolution
-        delta_mean_greens = [0 for i in range(nrp.config.brain_root.resolution ** 2)]
+        col_width = img_width // resolution
+        row_height = img_height // resolution
+        delta_mean_greens = [0 for i in range(resolution ** 2)]
+
+
 
         average_right = 0
         average_left = 0
@@ -32,36 +35,36 @@ def grab_image(t, camera, upper_half, lower_half, left_half, right_half, last_me
 
         # Split the image into equidistant regions
         # Sensor neurons are addressed in row_major order, top left to bottom right
-        for row_idx in range(nrp.config.brain_root.resolution):
-            for col_idx in range(nrp.config.brain_root.resolution):
+        for row_idx in range(resolution):
+            for col_idx in range(resolution):
                 x_start = col_idx * col_width
                 x_end = x_start + col_width
                 y_start = row_idx * row_height
                 y_end = y_start + row_height
                 green_channel = img[y_start:y_end,x_start:x_end,1]
                 mean_green = np.mean(green_channel)
-                if len(last_mean_greens.value) < (nrp.config.brain_root.resolution ** 2):
+                if len(last_mean_greens.value) < (resolution ** 2):
                     last_mean_greens.value.append(mean_green)
 
-                idx = row_idx * nrp.config.brain_root.resolution + col_idx
+                idx = row_idx * resolution + col_idx
                 delta_mean_green = mean_green - last_mean_greens.value[idx]
                 delta_mean_greens[idx] = delta_mean_green
 
                 amp = 6. * max(0., delta_mean_green)
 
                 # Find relevant neurons
-                if row_idx < nrp.config.brain_root.resolution // 2:
-                    upper_half[row_idx * nrp.config.brain_root.resolution + col_idx].amplitude = amp
-                elif row_idx > (nrp.config.brain_root.resolution // 2) + 1:
-                    population_row_idx = row_idx - (nrp.config.brain_root.resolution // 2) - 1
-                    lower_half[population_row_idx * nrp.config.brain_root.resolution + col_idx].amplitude = amp
-                if col_idx < nrp.config.brain_root.resolution // 2:
-                    left_half[row_idx * (nrp.config.brain_root.resolution // 2) + col_idx].amplitude = amp
+                if row_idx < resolution // 2:
+                    upper_half[row_idx * resolution + col_idx].amplitude = amp
+                elif row_idx > (resolution // 2) + 1:
+                    population_row_idx = row_idx - (resolution // 2) - 1
+                    lower_half[population_row_idx * resolution + col_idx].amplitude = amp
+                if col_idx < resolution // 2:
+                    left_half[row_idx * (resolution // 2) + col_idx].amplitude = amp
                     count_left += 1
                     average_left += amp
-                elif col_idx > (nrp.config.brain_root.resolution // 2) + 1:
-                    population_col_idx = col_idx - (nrp.config.brain_root.resolution // 2) - 1
-                    right_half[population_col_idx * (nrp.config.brain_root.resolution // 2) + col_idx].amplitude = amp
+                elif col_idx > (resolution // 2) + 1:
+                    population_col_idx = col_idx - (resolution // 2) - 1
+                    right_half[row_idx * (resolution // 2) + population_col_idx].amplitude = amp
                     count_right += 1
                     average_right += amp
 
@@ -73,7 +76,7 @@ def grab_image(t, camera, upper_half, lower_half, left_half, right_half, last_me
                 mat_filepath = debug_dir + "/debug_{}.csv".format(counter.value)
                 img_filepath = debug_dir + "/debug_{}.png".format(counter.value)
                 cv2.imwrite(img_filepath, img)
-                delta_mean_greens_reshaped = np.reshape(delta_mean_greens, (nrp.config.brain_root.resolution, nrp.config.brain_root.resolution))
+                delta_mean_greens_reshaped = np.reshape(delta_mean_greens, (resolution, resolution))
                 np.savetxt(mat_filepath, delta_mean_greens_reshaped, fmt="%10.5f")
             """
         counter.value = counter.value + 1

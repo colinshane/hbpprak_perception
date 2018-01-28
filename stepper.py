@@ -1,7 +1,8 @@
 import multiprocessing
 import os, sys
 import rospy
-from std_srvs.srv import Trigger, TriggerResponse
+from std_srvs.srv import Trigger, TriggerResponse, SetBool, SetBoolResponse
+from std_msgs.msg import Bool, Empty
 import time
 
 sys.path.append(os.path.join(os.path.dirname(__file__)))
@@ -31,9 +32,14 @@ def run_challenge():
         #clientLogger.info("Service did not process request: " + str(exc))
 
     step_client = rospy.ServiceProxy(step_service, Trigger)
+    #change_focus_pub.publish(Bool(False))
     try:
         time.sleep(3)
-        res = step_client() # Do one "step" in the challenge
+        res = step_client() # Lift mug
+        time.sleep(5)
+        res = step_client() # Hide mug
+        time.sleep(3)
+        res = step_client() # Shuffle
 
     except rospy.ServiceException as exc:
         clientLogger.info("Service did not process request: " + str(exc))

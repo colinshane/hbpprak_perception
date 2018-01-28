@@ -10,6 +10,6 @@ import numpy as np
 @nrp.MapRobotPublisher('eye_pan', Topic('/robot/left_eye_pan/vel', std_msgs.msg.Float64))
 @nrp.Neuron2Robot()
 def center_on_green(t, motors_down, motors_left, motors_up, motors_right, eye_tilt, eye_pan):
-    scaling_factor = 4
+    scaling_factor = 3
     eye_tilt.send_message(std_msgs.msg.Float64(scaling_factor * (motors_up.voltage - motors_down.voltage)))
     eye_pan.send_message(std_msgs.msg.Float64(scaling_factor * ( motors_left.voltage - motors_right.voltage)))

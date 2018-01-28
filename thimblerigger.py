@@ -8,6 +8,7 @@ from gazebo_msgs.srv import GetModelState, SetModelState, \
                             DeleteModel, DeleteModelRequest, \
                             SpawnEntity, SpawnEntityRequest
 from std_srvs.srv import Trigger, TriggerResponse
+from std_msgs.msg import Bool
 
 from hbp_nrp_excontrol.logs import clientLogger
 
@@ -102,6 +103,8 @@ class Thimblerigger(object):
         # Create services to control the thimblerigger
         self._offer_services()
 
+        self.shuffle_status_pub = rospy.Publisher("/group_3/shuffling", Bool, queue_size=10)
+
 
     def _offer_services(self):
         """
@@ -118,6 +121,7 @@ class Thimblerigger(object):
         show_correct_service = rospy.Service(tc.thimblerigger_show_correct_service, Trigger, self.show_mug_with_ball)
         hide_correct_service = rospy.Service(tc.thimblerigger_hide_correct_service, Trigger, self.hide_ball_under_mug)
         shuffle_service = rospy.Service(tc.thimblerigger_shuffle_service, Trigger, self.shuffle)
+        clientLogger.info("Services started!")
 
     def _setup(self):
         """
@@ -191,6 +195,7 @@ class Thimblerigger(object):
         :returns True, if the mug was lifted and the ball is visible.
         """
         clientLogger.info("Showing which mug contains the ball.")
+        self.shuffle_status_pub.publish(Bool(False))
         self._spawn_ball()
         self._show_ball()
         return self._ball_spawned and self._ball_visible
@@ -203,6 +208,7 @@ class Thimblerigger(object):
         :return True, if the mug was lowered and the ball is invisible.
         """
         clientLogger.info("Hiding ball under mug again.")
+        self.shuffle_status_pub.publish(Bool(True))
         self._hide_ball()
         self._despawn_ball()
         return not self._ball_spawned and not self._ball_visible
@@ -263,7 +269,7 @@ class Thimblerigger(object):
     @simple_trigger_callback
     def shuffle(self):
         clientLogger.info("Shuffeling mugs {} times now.".format(self.num_shuffles))
-
+        self.shuffle_status_pub.publish(Bool(True))
         for _ in range(self.num_shuffles):
             self._shuffle_once(displacement=self.shuffle_displacement)
 
@@ -295,7 +301,7 @@ class Thimblerigger(object):
             The direction indicates whether it should move left or right
             to avoid collisions.
             """
-            self._move_continuously(mug, dy=direction * self.shuffle_displacement)
+            self._move_continuously(mug, dy=direction * self.shuffle_displacement, smoothness=300)
             return direction * -1
 
         def move_into(mug, pose_to):
@@ -306,8 +312,8 @@ class Thimblerigger(object):
             current_pose = self._model_state_proxy(mug, 'world')
             dx = pose_to.pose.position.x - current_pose.pose.position.x
             dy = pose_to.pose.position.y - current_pose.pose.position.y
-            self._move_continuously(mug, dx=dx)
-            self._move_continuously(mug, dy=dy)
+            self._move_continuously(mug, dx=dx, smoothness=300)
+            self._move_continuously(mug, dy=dy, smoothness=300)
 
         for cycle in cycles:
             # Map to check which mug is already displaced

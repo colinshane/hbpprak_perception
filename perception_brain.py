@@ -7,7 +7,7 @@ from hbp_nrp_cle.brainsim import simulator as sim
 import numpy as np
 
 
-resolution = 21
+resolution = 17
 n_motors = 4  # down, up, left, right
 
 sensors = sim.Population(resolution * resolution, cellclass=sim.IF_curr_exp())

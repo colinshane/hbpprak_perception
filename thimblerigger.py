@@ -208,7 +208,7 @@ class Thimblerigger(object):
         :return True, if the mug was lowered and the ball is invisible.
         """
         clientLogger.info("Hiding ball under mug again.")
-        self.shuffle_status_pub.publish(Bool(True))
+        self.shuffle_status_pub.publish(Bool(False))
         self._hide_ball()
         self._despawn_ball()
         return not self._ball_spawned and not self._ball_visible

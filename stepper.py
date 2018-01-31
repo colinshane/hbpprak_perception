@@ -36,7 +36,7 @@ def run_challenge():
     try:
         time.sleep(3)
         res = step_client() # Lift mug
-        time.sleep(5)
+        time.sleep(7)
         res = step_client() # Hide mug
         time.sleep(3)
         res = step_client() # Shuffle

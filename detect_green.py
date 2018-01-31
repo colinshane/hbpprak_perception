@@ -65,8 +65,8 @@ def grab_image(t, camera, shuffle_status_sub, sensors, debug_sensors_left, debug
             start_px_y = (window_factor // 2) * window_height
             col_width = window_width // resolution
             row_height = window_height // resolution
-            red_threshold = 0.2
-            amp_scaling_factor = 1.5
+            red_threshold = 0.6
+            amp_scaling_factor = 1.3
 
             average_left = 0
             average_right = 0

@@ -1,6 +1,7 @@
 import random
 import functools
 import threading
+import math
 
 import rospy
 from gazebo_msgs.srv import GetModelState, SetModelState, \
@@ -8,7 +9,7 @@ from gazebo_msgs.srv import GetModelState, SetModelState, \
                             DeleteModel, DeleteModelRequest, \
                             SpawnEntity, SpawnEntityRequest
 from std_srvs.srv import Trigger, TriggerResponse
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Float64
 
 from hbp_nrp_excontrol.logs import clientLogger
 
@@ -56,6 +57,11 @@ class Thimblerigger(object):
                      and what shuffling permutations are generated.
         """
 
+        self.shuffle_status_pub = rospy.Publisher("/group_3/shuffling", Bool, queue_size=10)
+
+        self.eye_tilt_pub = rospy.Publisher('/robot/eye_tilt/pos', Float64, queue_size=10)
+        self.eye_pan_pub = rospy.Publisher('/robot/left_eye_pan/pos', Float64, queue_size=10)
+
         # SDFs to spawn objects
         self.mug_sdf = tc.mug_sdf_xml
         self.ball_sdf = tc.ball_sdf_xml
@@ -102,8 +108,6 @@ class Thimblerigger(object):
 
         # Create services to control the thimblerigger
         self._offer_services()
-
-        self.shuffle_status_pub = rospy.Publisher("/group_3/shuffling", Bool, queue_size=10)
 
     def _offer_services(self):
         """
@@ -194,6 +198,8 @@ class Thimblerigger(object):
         :returns True, if the mug was lifted and the ball is visible.
         """
         clientLogger.info("Showing which mug contains the ball.")
+        self.eye_tilt_pub.publish(Float64(-math.pi/4.0))
+        self.eye_pan_pub.publish(Float64(0))
         self.shuffle_status_pub.publish(Bool(False))
         self._spawn_ball()
         self._show_ball()

@@ -25,30 +25,22 @@ def center_on_green(t, motors_down_stage_one, motors_left_stage_one, motors_up_s
 
     stage_two = shuffle_status_sub.value.data if shuffle_status_sub.value is not None else False
 
-    if (not stage_two) and eye_tilt_sub.value is not None and eye_pan_sub.value is not None:
+    if not stage_two:
         # Stage one: Velocity-controlled motion to green ball
-        """
         scaling_factor = 3
         tilt = scaling_factor * (motors_up_stage_one.voltage - motors_down_stage_one.voltage)
         pan = scaling_factor * ( motors_left_stage_one.voltage - motors_right_stage_one.voltage)
         eye_tilt_vel.send_message(std_msgs.msg.Float64(tilt))
         eye_pan_vel.send_message(std_msgs.msg.Float64(pan))
-        """
-        delta_theta = 0.04 # Radians per control period
-        current_tilt = eye_tilt_sub.value.data
-        current_pan = eye_pan_sub.value.data
-        tilt = current_tilt + delta_theta * (motors_up_stage_one.voltage - motors_down_stage_one.voltage)
-        pan = current_pan + delta_theta * ( motors_left_stage_one.voltage - motors_right_stage_one.voltage)
-        eye_tilt_pos.send_message(std_msgs.msg.Float64(tilt))
-        eye_pan_pos.send_message(std_msgs.msg.Float64(pan))
-    """
-    else:
+
+    elif eye_tilt_sub.value is not None and eye_pan_sub.value is not None:
+        clientLogger.info("Centering on red...")
         # Stage two: Position-controlled motion to red cup
-        delta_theta = 0.01 # Radians per control period
+        delta_theta = 0.02 # Radians per control period
         current_tilt = eye_tilt_sub.value.data
         current_pan = eye_pan_sub.value.data
         tilt = current_tilt + delta_theta * (motors_up_stage_two.voltage - motors_down_stage_two.voltage)
         pan = current_pan + delta_theta * ( motors_left_stage_two.voltage - motors_right_stage_two.voltage)
+        if tilt - current_tilt #TODO
         eye_tilt_pos.send_message(std_msgs.msg.Float64(tilt))
         eye_pan_pos.send_message(std_msgs.msg.Float64(pan))
-    """

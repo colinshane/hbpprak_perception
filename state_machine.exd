@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, math
 
 from std_msgs.msg import Empty
 from std_srvs.srv import Trigger
@@ -7,6 +7,7 @@ from smach import StateMachine
 from smach.state import State
 import smach_ros
 import rospy
+from std_msgs.msg import Float64
 
 import hbp_nrp_excontrol.nrp_states as states
 from hbp_nrp_excontrol.logs import clientLogger

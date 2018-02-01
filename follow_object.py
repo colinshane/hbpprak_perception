@@ -30,7 +30,7 @@ def center_on_green(t, motors_down_stage_one, motors_left_stage_one, motors_up_s
 
     else:
         # Stage two: Position-controlled motion to red cup
-        scaling_factor = 0.02
+        scaling_factor = 0.03
         joint_names = joint_state_sub.value.name
         joint_positions = joint_state_sub.value.position
         current_tilt = joint_positions[joint_names.index("eye_tilt")]

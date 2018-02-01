@@ -1,6 +1,3 @@
-# Imported Python Transfer Function
-
-# Motors: down, up, left, right
 import numpy as np
 @nrp.MapSpikeSink("motors_down_stage_one", nrp.brain.down_stage_one, nrp.leaky_integrator_alpha)
 @nrp.MapSpikeSink("motors_left_stage_one", nrp.brain.left_stage_one, nrp.leaky_integrator_alpha)
@@ -10,7 +7,6 @@ import numpy as np
 @nrp.MapSpikeSink("motors_left_stage_two", nrp.brain.left_stage_two, nrp.leaky_integrator_alpha)
 @nrp.MapSpikeSink("motors_up_stage_two", nrp.brain.up_stage_two, nrp.leaky_integrator_alpha)
 @nrp.MapSpikeSink("motors_right_stage_two", nrp.brain.right_stage_two, nrp.leaky_integrator_alpha)
-@nrp.MapSpikeSink("motors_center_stage_two", nrp.brain.center_stage_two, nrp.leaky_integrator_alpha)
 @nrp.MapRobotPublisher('eye_tilt_pos', Topic('/robot/eye_tilt/pos', std_msgs.msg.Float64))
 @nrp.MapRobotPublisher('eye_pan_pos', Topic('/robot/left_eye_pan/pos', std_msgs.msg.Float64))
 @nrp.MapRobotPublisher('eye_tilt_vel', Topic('/robot/eye_tilt/vel', std_msgs.msg.Float64))
@@ -19,7 +15,7 @@ import numpy as np
 @nrp.MapRobotSubscriber("shuffle_status_sub", Topic("/group_3/shuffling", std_msgs.msg.Bool))
 @nrp.Neuron2Robot()
 def center_on_green(t, motors_down_stage_one, motors_left_stage_one, motors_up_stage_one, motors_right_stage_one, 
-                    motors_down_stage_two, motors_left_stage_two, motors_up_stage_two, motors_right_stage_two, motors_center_stage_two,
+                    motors_down_stage_two, motors_left_stage_two, motors_up_stage_two, motors_right_stage_two,
                     eye_tilt_pos, eye_pan_pos, eye_tilt_vel, eye_pan_vel, joint_state_sub, shuffle_status_sub):
 
     stage_two = shuffle_status_sub.value.data if shuffle_status_sub.value is not None else False
@@ -33,7 +29,6 @@ def center_on_green(t, motors_down_stage_one, motors_left_stage_one, motors_up_s
         eye_pan_vel.send_message(std_msgs.msg.Float64(pan))
 
     else:
-        clientLogger.info("Centering on red...")
         # Stage two: Position-controlled motion to red cup
         scaling_factor = 0.02
         joint_names = joint_state_sub.value.name

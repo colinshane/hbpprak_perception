@@ -1,4 +1,3 @@
-# Imported Python Transfer Function
 import numpy as np
 import sensor_msgs.msg
 import std_msgs.msg
@@ -9,9 +8,8 @@ from cv_bridge import CvBridge
 @nrp.MapRobotPublisher('debug_sensors_left', Topic('/group_3/debug_sensors_left', std_msgs.msg.Float64))
 @nrp.MapRobotPublisher('debug_sensors_right', Topic('/group_3/debug_sensors_right', std_msgs.msg.Float64))
 @nrp.MapRobotPublisher("shuffle_window_debug_pub", Topic("/group_3/windowed_image", sensor_msgs.msg.Image))
-@nrp.MapRobotPublisher("retina_activity_debug_pub", Topic("/group_3/retina_activity", sensor_msgs.msg.Image))
 @nrp.Robot2Neuron()
-def grab_image(t, camera, shuffle_status_sub, sensors, debug_sensors_left, debug_sensors_right, shuffle_window_debug_pub, retina_activity_debug_pub):
+def grab_image(t, camera, shuffle_status_sub, sensors, debug_sensors_left, debug_sensors_right, shuffle_window_debug_pub):
     resolution = nrp.config.brain_root.resolution
 
     # Take the image from the robot's left eye
@@ -30,7 +28,6 @@ def grab_image(t, camera, shuffle_status_sub, sensors, debug_sensors_left, debug
             row_height = img_height // resolution
             green_threshold = 0.5
             amp_scaling_factor = 32.
-            #retina_heatmap = np.zeros(shape=(img_height, img_width, 1), dtype=np.int8)
             
             # Split entire image into regions of same size
             # Sensor neurons are addressed in row_major order, top left to bottom right
@@ -51,10 +48,8 @@ def grab_image(t, camera, shuffle_status_sub, sensors, debug_sensors_left, debug
                     amp = amp_scaling_factor * green_proportion if green_proportion > green_threshold else 0
 
                     sensors[idx].amplitude = amp
-                    #retina_heatmap[y_start:y_end,x_start:x_end, 0] = int(amp)
 
             shuffle_window_debug_pub.send_message(cvBridge.cv2_to_imgmsg(img, encoding="rgb8"))
-            #retina_activity_debug_pub.send_message(cvBridge.cv2_to_imgmsg(cv2.cvtColor(retina_heatmap, cv2.COLOR_GRAY2RGB), encoding="rgb8"))
 
         else:
             # Detect red in the center of the image
@@ -101,12 +96,9 @@ def grab_image(t, camera, shuffle_status_sub, sensors, debug_sensors_left, debug
                         count_right += 1
                         average_right += amp
 
-                    #retina_heatmap[y_start:y_end,x_start:x_end, :] = amp
-
             average_left /= float(count_left)
             average_right /= float(count_right)
             debug_sensors_left.send_message(std_msgs.msg.Float64(average_left))
             debug_sensors_right.send_message(std_msgs.msg.Float64(average_right))
             
             shuffle_window_debug_pub.send_message(cvBridge.cv2_to_imgmsg(img[start_px_y:start_px_y + window_height, start_px_x:start_px_x + window_width,:], encoding="rgb8"))
-            #retina_activity_debug_pub.send_message(cvBridge.cv2_to_imgmsg(retina_heatmap, encoding="rgb8"))

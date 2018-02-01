@@ -4,6 +4,6 @@
 		<ns1:file>perception_brain.py</ns1:file>
 	</ns1:brainModel>
 	<ns1:bodyModel>model.sdf</ns1:bodyModel>
-	<ns1:transferFunction src="center_on_green.py" xsi:type="ns1:PythonTransferFunction"/>
-	<ns1:transferFunction src="detect_green.py" xsi:type="ns1:PythonTransferFunction"/>
+	<ns1:transferFunction src="detect_object.py" xsi:type="ns1:PythonTransferFunction"/>
+	<ns1:transferFunction src="follow_object.py" xsi:type="ns1:PythonTransferFunction"/>
 </ns1:bibi>

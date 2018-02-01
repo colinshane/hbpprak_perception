@@ -105,7 +105,6 @@ class Thimblerigger(object):
 
         self.shuffle_status_pub = rospy.Publisher("/group_3/shuffling", Bool, queue_size=10)
 
-
     def _offer_services(self):
         """
         Start some ros services for different actions of the thimblerigger.

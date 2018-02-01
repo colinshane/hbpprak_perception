@@ -11,7 +11,7 @@
 	</ns1:environmentModel>
 	<ns1:bibiConf src="bibi_configuration.bibi"/>
 	<ns1:experimentControl>
-		<ns1:stateMachine id="MugHandlingMachine" src="state_machine.exd" xsi:type="ns1:SMACHStateMachine"/>
+		<ns1:stateMachine id="MugHandlingMachine" src="state_machine_train.exd" xsi:type="ns1:SMACHStateMachine"/>
 	</ns1:experimentControl>
 	<ns1:cameraPose>
 		<ns1:cameraPosition x="2.5" y="0.0" z="1.8"/>

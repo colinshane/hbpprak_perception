@@ -40,7 +40,6 @@ def run_challenge():
         res = step_client() # Hide mug
         time.sleep(3)
         res = step_client() # Shuffle
-
     except rospy.ServiceException as exc:
         clientLogger.info("Service did not process request: " + str(exc))
 

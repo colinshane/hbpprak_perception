@@ -62,7 +62,8 @@ move_proxy = rospy.ServiceProxy('gazebo/set_model_state',
 model_state_proxy =  rospy.ServiceProxy('gazebo/get_model_state',
                                               GetModelState,
                                               persistent=True)
-neck_pitch_pub = rospy.Publisher('/robot/neck_pitch/pos', Float64, queue_size=10)
+eye_tilt_pub = rospy.Publisher('/robot/eye_tilt/pos', Float64, queue_size=10)
+eye_pan_pub = rospy.Publisher('/robot/left_eye_pan/pos', Float64, queue_size=10)
 
 def move(model_name, dx=0., dy=0., dz=0., smoothness=50):
     smoothness = max(1, smoothness)
@@ -86,8 +87,9 @@ class InitRobotState(State):
 
     def execute(self, userdata):
         time.sleep(2)
-        clientLogger.info("Moving robot neck...")
-        neck_pitch_pub.publish(Float64(-math.pi/4.0))
+        clientLogger.info("Moving robot eye...")
+        eye_tilt_pub.publish(Float64(-math.pi/4.0))
+        eye_pan_pub.publish(Float64(0))
         clientLogger.info("Waiting until robot stops moving...")
         time.sleep(15)
         return 'success'

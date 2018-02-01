@@ -11,37 +11,44 @@ import numpy as np
 @nrp.MapSpikeSink("motors_up_stage_two", nrp.brain.up_stage_two, nrp.leaky_integrator_alpha)
 @nrp.MapSpikeSink("motors_right_stage_two", nrp.brain.right_stage_two, nrp.leaky_integrator_alpha)
 @nrp.MapSpikeSink("motors_center_stage_two", nrp.brain.center_stage_two, nrp.leaky_integrator_alpha)
-@nrp.MapRobotPublisher('eye_tilt', Topic('/robot/eye_tilt/vel', std_msgs.msg.Float64))
-@nrp.MapRobotPublisher('eye_pan', Topic('/robot/left_eye_pan/vel', std_msgs.msg.Float64))
+@nrp.MapRobotPublisher('eye_tilt_pos', Topic('/robot/eye_tilt/pos', std_msgs.msg.Float64))
+@nrp.MapRobotPublisher('eye_pan_pos', Topic('/robot/left_eye_pan/pos', std_msgs.msg.Float64))
+@nrp.MapRobotPublisher('eye_tilt_vel', Topic('/robot/eye_tilt/vel', std_msgs.msg.Float64))
+@nrp.MapRobotPublisher('eye_pan_vel', Topic('/robot/left_eye_pan/vel', std_msgs.msg.Float64))
+@nrp.MapRobotSubscriber("eye_tilt_sub", Topic("/robot/eye_tilt/pos", std_msgs.msg.Float64))
+@nrp.MapRobotSubscriber("eye_pan_sub", Topic("/robot/left_eye_pan/pos", std_msgs.msg.Float64))
 @nrp.MapRobotSubscriber("shuffle_status_sub", Topic("/group_3/shuffling", std_msgs.msg.Bool))
 @nrp.Neuron2Robot()
 def center_on_green(t, motors_down_stage_one, motors_left_stage_one, motors_up_stage_one, motors_right_stage_one, 
                     motors_down_stage_two, motors_left_stage_two, motors_up_stage_two, motors_right_stage_two, motors_center_stage_two,
-                    eye_tilt, eye_pan, shuffle_status_sub):
+                    eye_tilt_pos, eye_pan_pos, eye_tilt_vel, eye_pan_vel, eye_tilt_sub, eye_pan_sub, shuffle_status_sub):
 
     stage_two = shuffle_status_sub.value.data if shuffle_status_sub.value is not None else False
 
-    if not stage_two:
+    if (not stage_two) and eye_tilt_sub.value is not None and eye_pan_sub.value is not None:
+        # Stage one: Velocity-controlled motion to green ball
+        """
         scaling_factor = 3
         tilt = scaling_factor * (motors_up_stage_one.voltage - motors_down_stage_one.voltage)
         pan = scaling_factor * ( motors_left_stage_one.voltage - motors_right_stage_one.voltage)
+        eye_tilt_vel.send_message(std_msgs.msg.Float64(tilt))
+        eye_pan_vel.send_message(std_msgs.msg.Float64(pan))
+        """
+        delta_theta = 0.04 # Radians per control period
+        current_tilt = eye_tilt_sub.value.data
+        current_pan = eye_pan_sub.value.data
+        tilt = current_tilt + delta_theta * (motors_up_stage_one.voltage - motors_down_stage_one.voltage)
+        pan = current_pan + delta_theta * ( motors_left_stage_one.voltage - motors_right_stage_one.voltage)
+        eye_tilt_pos.send_message(std_msgs.msg.Float64(tilt))
+        eye_pan_pos.send_message(std_msgs.msg.Float64(pan))
+    """
     else:
-        """
-        scaling_factor = 3
-        diff_tilt = motors_up_stage_two.voltage - motors_down_stage_two.voltage
-        sign_tilt = -1 if diff_tilt < 0 else 1
-        tilt = sign_tilt * scaling_factor * diff_tilt * diff_tilt
-        diff_pan = motors_left_stage_two.voltage - motors_right_stage_two.voltage
-        sign_pan = -1 if diff_pan < 0 else 1
-        pan = sign_pan * scaling_factor * diff_pan * diff_pan
-        """
-        if motors_center_stage_two.voltage > 0.008:
-            scaling_factor = 0
-            clientLogger.info("Setting vel to 0")
-        else:
-            scaling_factor = 4
-        tilt = scaling_factor * (motors_up_stage_two.voltage - motors_down_stage_two.voltage)
-        pan = scaling_factor * ( motors_left_stage_two.voltage - motors_right_stage_two.voltage)
-    
-    eye_tilt.send_message(std_msgs.msg.Float64(tilt))
-    eye_pan.send_message(std_msgs.msg.Float64(pan))
+        # Stage two: Position-controlled motion to red cup
+        delta_theta = 0.01 # Radians per control period
+        current_tilt = eye_tilt_sub.value.data
+        current_pan = eye_pan_sub.value.data
+        tilt = current_tilt + delta_theta * (motors_up_stage_two.voltage - motors_down_stage_two.voltage)
+        pan = current_pan + delta_theta * ( motors_left_stage_two.voltage - motors_right_stage_two.voltage)
+        eye_tilt_pos.send_message(std_msgs.msg.Float64(tilt))
+        eye_pan_pos.send_message(std_msgs.msg.Float64(pan))
+    """
